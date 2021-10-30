@@ -1,16 +1,10 @@
 
-resource "kubernetes_namespace" "kube-prom-stack" {
-  metadata {
-    name = "monitor"
-  }
-}
-
 resource "helm_release" "kube-prometheus-stack" {
   name = "kube-prometheus-stack"
 
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-prometheus-stack"
-  namespace  = kubernetes_namespace.kube-prom-stack.id
+  namespace  = "monitor"
 
   reset_values = true
   values = [
@@ -22,21 +16,33 @@ resource "helm_release" "kube-prometheus-stack" {
     value = "false"
   }
 
-  depends_on = [
-    kubernetes_namespace.kube-prom-stack
-  ]
+  create_namespace = true
 
+  depends_on = [
+    helm_release.ingress-nginx
+  ]
 }
 
 resource "helm_release" "prometheus-blackbox-exporter" {
   name = "prometheus-blackbox-exporter"
 
-  repository = "https://prometheus-community.github.io/helm-charts"
-  chart      = "prometheus-blackbox-exporter"
-  namespace  = kubernetes_namespace.kube-prom-stack.id
+  repository       = "https://prometheus-community.github.io/helm-charts"
+  chart            = "prometheus-blackbox-exporter"
+  namespace        = "monitor"
+  create_namespace = true
 
   depends_on = [
-    kubernetes_namespace.kube-prom-stack
+    helm_release.ingress-nginx
   ]
+}
 
+
+resource "helm_release" "ingress-nginx" {
+  name = "ingress-nginx"
+
+  repository = "https://kubernetes.github.io/ingress-nginx"
+  chart      = "ingress-nginx"
+
+  namespace        = "ingress-nginx"
+  create_namespace = true
 }
