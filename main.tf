@@ -8,6 +8,7 @@ resource "helm_release" "kube-prometheus-stack" {
 
   reset_values = true
   values = [
+    "${file("kube-prom-stack-ingress.yaml")}",
     "${file("blackbox-exporter-probe.yaml")}" # Blackbox Exporter Specs
   ]
 
